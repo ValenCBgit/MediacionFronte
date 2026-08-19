@@ -1,5 +1,7 @@
 {
-  "buildCommand": "pnpm --filter @mediacion/shared build && pnpm --dir mediacion-app exec expo export --platform web --output-dir ../public",
+  "installCommand": "",
+  "buildCommand": "",
   "outputDirectory": "public",
-  "framework": null
+  "framework": null,
+  "cleanUrls": true
 }

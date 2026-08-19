@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { LoadingState } from '@/design-system';
 import type { AuthService } from '@/services/auth/auth.service';
+import { mockAuthService } from '@/services/auth/mock-auth.service';
 import { backend } from '@/services/backend-instance';
 
 import { AuthSessionProvider, useAuthSession } from './auth-session';
@@ -69,15 +70,17 @@ export type AuthGateProps = {
 };
 
 /**
- * Gates the app on a real session — but only when there is a backend to
- * authenticate against.
+ * Gates the app on a session. With a backend configured that session is real
+ * (Supabase); without one the screens run on mocks and the gate runs on
+ * `mockAuthService` — any email + password signs in — so the demo starts on
+ * the login screen (TyC, LegalFooter and botón de arrepentimiento included)
+ * instead of skipping straight to the tabs.
  *
- * With no backend configured the screens run on mocks, and there is nothing to
- * sign in to. Gating then would lock the app behind a login form that cannot
- * possibly succeed, so this passes straight through instead.
+ * Passing `authService: null` explicitly (test seam) still bypasses the gate
+ * entirely.
  */
 export function AuthGate({ children, authService }: AuthGateProps) {
-  const auth = authService === undefined ? (backend?.auth ?? null) : authService;
+  const auth = authService === undefined ? (backend?.auth ?? mockAuthService) : authService;
 
   if (auth === null) {
     return <>{children}</>;
