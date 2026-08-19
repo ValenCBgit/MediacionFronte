@@ -11,10 +11,13 @@ import { join } from 'node:path';
  * refuses to serve it even when committed — so the deployed site 404s every
  * font and falls back to system typography.
  *
- * This renames every `node_modules` directory under `public/assets` to `nm`
- * and rewrites the references inside the exported JS bundle and prerendered
- * HTML to match. Run it right after `expo export` (see `vercel-build` in the
- * root package.json).
+ * The dot-directory `.pnpm` in the same path is a second problem: Vercel's
+ * static serving also refuses hidden (dot-prefixed) directories.
+ *
+ * This renames every `node_modules` directory under `public/assets` to `nm`,
+ * every `.pnpm` to `pnpm`, and rewrites the references inside the exported JS
+ * bundle and prerendered HTML to match. Run it right after `expo export`
+ * (see `vercel-build` in the root package.json).
  */
 const PUBLIC_DIR = new URL('../public', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
 const ASSETS_DIR = join(PUBLIC_DIR, 'assets');
@@ -31,8 +34,8 @@ function renameNodeModulesDirs(dir) {
     const full = join(dir, entry);
     if (!statSync(full).isDirectory()) continue;
     let next = full;
-    if (entry === 'node_modules') {
-      next = join(dir, 'nm');
+    if (entry === 'node_modules' || entry === '.pnpm') {
+      next = join(dir, entry === 'node_modules' ? 'nm' : 'pnpm');
       renameSync(full, next);
       renamed += 1;
     }
@@ -62,7 +65,9 @@ let patched = 0;
 for (const file of walkFiles(PUBLIC_DIR)) {
   if (!/\.(js|html|css|json)$/.test(file)) continue;
   const before = readFileSync(file, 'utf8');
-  const after = before.replace(ASSET_PATH, (path) => path.replaceAll('/node_modules/', '/nm/'));
+  const after = before.replace(ASSET_PATH, (path) =>
+    path.replaceAll('/node_modules/', '/nm/').replaceAll('/.pnpm/', '/pnpm/'),
+  );
   if (after !== before) {
     writeFileSync(file, after);
     patched += 1;
