@@ -11,7 +11,7 @@
     "test": "pnpm -r --if-present test",
     "lint": "biome ci .",
     "typecheck": "tsc -b",
-    "vercel-build": "pnpm --filter @mediacion/shared build && pnpm --dir mediacion-app exec expo export --platform web --output-dir ../public"
+    "vercel-build": "pnpm --filter @mediacion/shared build && pnpm --dir mediacion-app exec expo export --platform web --output-dir ../public && node scripts/fix-public-assets.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.5",
